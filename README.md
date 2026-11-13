@@ -1,6 +1,6 @@
 # MinUI for Boyhom / SJGAM M17
 
-This is a customized fork of [MinUI](https://github.com/shauninman/MinUI) maintained by [Guilherme S. Garcia](https://github.com/GuilhermeSoaresGarcia/MinUI-M17), specifically tailored and optimized for the **Boyhom / SJGAM M17** handheld retro gaming console.
+This is a customized fork of [MinUI](https://github.com/shauninman/MinUI) specifically tailored and optimized for the **Boyhom / SJGAM M17** handheld retro gaming console.
 
 Original project created and maintained by [@shauninman](https://github.com/shauninman).
 
