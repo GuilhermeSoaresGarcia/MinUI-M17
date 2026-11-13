@@ -1,110 +1,75 @@
-# MinUI
+# MinUI for Boyhom / SJGAM M17
 
-MinUI is a focused, custom launcher and libretro frontend for [a variety of retro handhelds](#supported-devices).
+This is a customized fork of [MinUI](https://github.com/shauninman/MinUI) maintained by [Guilherme S. Garcia](https://github.com/GuilhermeSoaresGarcia/MinUI-M17), specifically tailored and optimized for the **Boyhom / SJGAM M17** handheld retro gaming console.
 
-<img src="github/minui-main.png" width=320 /> <img src="github/minui-menu-gbc.png" width=320 /> 
+Original project created and maintained by [@shauninman](https://github.com/shauninman).
 
-## Features
+---
 
-- Simple launcher, simple SD card
-- No settings or configuration
-- No boxart, themes, or distractions
-- Automatically hides hidden files
-  and extension and region/version 
-  cruft in display names
-- Consistent in-emulator menu with
-  quick access to save states, disc
-  changing, and emulator options
-- Automatically sleeps after 30 seconds 
-  or press POWER to sleep (and wake)
-- Automatically powers off while asleep
-  after two minutes or hold POWER for
-  one second
-- Automatically resumes right where
-  you left off if powered off while
-  in-game, manually or while asleep
-- Resume from manually created, last 
-  used save state by pressing X in 
-  the launcher instead of A
-- Streamlined emulator frontend 
-  (minarch + libretro cores)
-- Single SD card compatible with
-  multiple devices from different
-  manufacturers
+## Changes in this Fork (M17 Focus)
 
-You can [grab the latest version here](https://github.com/shauninman/MinUI/releases).
+### 1. Swapped UI Button Hints (A ↔ B and X ↔ Y)
+On the Boyhom M17, the physical button labeling and user expectation differ from the default Nintendo-style UI hints. The frontend display hints have been swapped across all interfaces without altering underlying input logic:
+- **Main Launcher (`minui`)**:
+  - `B BACK` → `A BACK`
+  - `A OPEN` → `B OPEN`
+  - `X RESUME` → `Y RESUME`
+- **In-Game Emulator Frontend (`minarch`)**:
+  - Quick menu hints: `B BACK` `A OKAY` → `A BACK` `B OKAY`
+  - Controls & Shortcuts binding prompts: `"Press B to set and Y to clear"`
+  - Controls & Shortcuts mapping values: visual display labels swapped for `A ↔ B` and `X ↔ Y`
+  - Save/Option dialogs: `A OKAY` → `B OKAY`
+- **Input Tester Tool (`Input.pak / minput`)**:
+  - Physical button map layout on screen updated to reflect `A ↔ B` and `X ↔ Y` so highlighted buttons match physical press and label orientation.
+- **Clock Tool (`Clock.pak`)**:
+  - `B CANCEL` `A SET` → `A CANCEL` `B SET`
 
-> Devices with a physical power switch
-> use MENU to sleep and wake instead of
-> POWER. Once asleep the device can safely
-> be powered off manually with the switch.
+### 2. In-Game Low Battery Blinking Warning Overlay
+- **Gameplay Overlay**: When the battery reaches its lowest level ($\le 10\%$), a blinking warning pill appears in the top-right corner of the screen during gameplay (matching the exact location and icon of the menu battery indicator).
+- **Non-intrusive**: Operates at 1 Hz (500 ms visible / 500 ms hidden) directly rendered in SDL2 without pausing emulation, dropping audio, or capturing controls.
+- **Plug-and-Play Detection**: Automatically stops blinking when a charger is connected, and resumes blinking if unplugged while still at low battery until depleted.
+- **Hardware Compatibility**: Improved charger detection in `PLAT_getBatteryStatus` supporting both M17 hardware revisions (USB UDC state + battery power supply status / charger online).
 
-## Supported consoles
+---
 
-Base:
+## Installation on M17
 
-- Game Boy
-- Game Boy Color
-- Game Boy Advance
-- Nintendo Entertainment System
-- Super Nintendo Entertainment System
-- Sega Genesis
-- PlayStation
+1. Download the latest release zip (`MinUI-M17-Release.zip` or individual binaries).
+2. Extract the archive onto the root of your FAT32-formatted SD card:
+   - `/.system/m17/bin/minui.elf`
+   - `/.system/m17/bin/minarch.elf`
+   - `/.system/m17/bin/keymon.elf`
+   - `/.system/m17/bin/say.elf`
+   - `/.system/m17/bin/syncsettings.elf`
+   - `/.system/m17/lib/libmsettings.so`
+   - `/Tools/m17/Input.pak/minput.elf`
+   - `/Tools/m17/Clock.pak/clock.elf`
+   - `/em_ui.sh` (bootloader launcher script)
 
-Extras:
+---
 
-- Neo Geo Pocket (and Color)
-- Pico-8
-- Pokémon mini
-- Sega Game Gear
-- Sega Master System
-- Super Game Boy
-- TurboGrafx-16 (and TurboGrafx-CD)
-- Virtual Boy
+## Building from Source
 
-## Supported Devices
+To compile the M17 binaries using the Docker cross-compilation environment:
 
-| Device | Added | Status |
-| -- | -- | -- |
-| Anbernic RG28xx | MinUI-20240429b-2 | Legacy |
-| Anbernic RG34xx | MinUI-20241227-0 | Legacy |
-| Anbernic RG34xxSP | MinUI-20250920-0 | Legacy |
-| Anbernic RG35xx | MinUI-20230922b-2 | Legacy |
-| Anbernic RG35xx Plus | MinUI-20240106b-0 | Legacy |
-| Anbernic RG35xxH | MinUI-20240120b-1 | Legacy |
-| Anbernic RG35xxSP | MinUI-20240525-0 | Legacy |
-| Anbernic RG40xxH | MinUI-20240717-1 | Legacy |
-| Anbernic RG40xxV | MinUI-20240831-0 | Legacy | 
-| Anbernic RG CubeXX | MinUI-202401028-0 | Legacy | 
-| GKD Pixel | MinUI-20240120b-1 | Legacy |
-| M17 | MinUI-20231126b-2 | Legacy |
-| MagicX XU Mini M | MinUI-20240831-0 | Legacy | 
-| MagicX Mini Zero 28 | MinUI-20250111-0 | Legacy |
-| Miyoo A30 | MinUI-20240705-0 | Legacy |
-| Miyoo Flip | MinUI-20250111-0 | Legacy |
-| Miyoo Mini | MinUI-20230922b-2 | Legacy |
-| Miyoo Mini Flip | MinUI-20251023-0 | Legacy |
-| Miyoo Mini Plus | MinUI-20230922b-2 | Legacy |
-| Powkiddy RGB30 | MinUI-20231014b-1 | Legacy |
-| Trimui Brick | MinUI-20241028-0 | Legacy |
-| Trimui Smart | MinUI-20230922b-2 | Legacy |
-| Trimui Smart Pro | MinUI-20231111b-2 | Legacy |
+```bash
+# Enter the M17 toolchain container:
+make PLATFORM=m17 shell
 
-> [!NOTE]
-> **Active** actively working on compatibility and improvements specific to this device  
-> **Maintained** inheriting improvements to common functionality  
-> **Legacy** will be retired in a future update  
-> **Retired** removed from repo, no longer updated or packaged with new releases
+# Inside container:
+cd /root/workspace/all/minui && make
+cd /root/workspace/all/minarch && make
+cd /root/workspace/all/minput && make
+cd /root/workspace/all/clock && make
+cd /root/workspace/all/say && make
+cd /root/workspace/all/syncsettings && make
+cd /root/workspace/m17/libmsettings && make
+cd /root/workspace/m17/keymon && make
+```
 
-## Legacy versions
+---
 
-The original Trimui Model S version of MinUI (2021/04/03-2021/08/06) has been archived [here](https://github.com/shauninman/MinUI-Legacy-Trimui-Model-S).
+## Credits
 
-The sequel, MiniUI for the Miyoo Mini (2022/04/20-2022/10/23), has been archived [here](https://github.com/shauninman/MiniUI-Legacy-Miyoo-Mini).
-
-The return of MinUI for the original Anbernic RG35XX (2023/02/26-2023/03/26) has been archived [here](https://github.com/shauninman/MinUI-Legacy-RG35XX).
-
-The current MinUI which introduced support for multiple devices starting with the Trimui Smart, Miyoo Mini (and Plus), and the original Anbernic RG35XX was released on [2023/09/22][init-release] with the initial functional commit 6 months earlier on [2023/03/27][init-commit].
-
-[init-release]:https://github.com/shauninman/MinUI/releases/tag/v20230922b-2
-[init-commit]:https://github.com/shauninman/MinUI/commit/53e0296ea5a2794290fb5783765af6cee0063445#diff-b993e61ab6e66a19b67c88cfb98261aa9267d250de8bb56463662f67aae1a558
+- Original MinUI project: [https://github.com/shauninman/MinUI](https://github.com/shauninman/MinUI)
+- M17 customizations and maintenance: [Guilherme S. Garcia](https://github.com/GuilhermeSoaresGarcia/MinUI-M17)

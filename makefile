@@ -20,7 +20,7 @@ BUILD_HASH:=$(shell git rev-parse --short HEAD)
 RELEASE_TIME:=$(shell TZ=GMT date +%Y%m%d)
 RELEASE_BETA=
 RELEASE_BASE=MinUI-$(RELEASE_TIME)$(RELEASE_BETA)
-RELEASE_DOT:=$(shell find -E ./releases/. -regex ".*/${RELEASE_BASE}-[0-9]+-base\.zip" | wc -l | sed 's/ //g')
+RELEASE_DOT:=$(shell find ./releases/. -regextype posix-extended -regex ".*/${RELEASE_BASE}-[0-9]+-base\.zip" 2>/dev/null | wc -l | sed 's/ //g')
 RELEASE_NAME=$(RELEASE_BASE)-$(RELEASE_DOT)
 
 ###########################################################
@@ -91,7 +91,7 @@ clean:
 setup: name
 	# ----------------------------------------------------
 	# make sure we're running in an input device
-	tty -s 
+	# tty -s 
 	
 	# ready fresh build
 	rm -rf ./build

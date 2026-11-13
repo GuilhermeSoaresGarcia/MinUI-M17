@@ -178,6 +178,18 @@ static struct VID_Context {
 	int sharpness;
 } vid;
 
+#define OVERLAY_WIDTH PILL_SIZE // unscaled
+#define OVERLAY_HEIGHT PILL_SIZE // unscaled
+#define OVERLAY_BPP 4
+#define OVERLAY_DEPTH 32
+#define OVERLAY_PITCH (OVERLAY_WIDTH * OVERLAY_BPP) // unscaled
+#define OVERLAY_RGBA_MASK 0x00ff0000,0x0000ff00,0x000000ff,0xff000000 // ARGB
+static struct OVL_Context {
+	SDL_Surface* overlay;
+	SDL_Texture* texture;
+	int enabled;
+} ovl;
+
 SDL_Surface* PLAT_initVideo(void) {
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
 	SDL_ShowCursor(0);
@@ -260,6 +272,10 @@ static void clearVideo(void) {
 void PLAT_quitVideo(void) {
 	clearVideo();
 
+	if (ovl.texture) {
+		SDL_DestroyTexture(ovl.texture);
+		ovl.texture = NULL;
+	}
 	SDL_FreeSurface(vid.screen);
 	SDL_FreeSurface(vid.buffer);
 	if (vid.target) SDL_DestroyTexture(vid.target);
@@ -359,6 +375,30 @@ void PLAT_blitRenderer(GFX_Renderer* renderer) {
 	resizeVideo(vid.blit->true_w,vid.blit->true_h,vid.blit->src_p);
 }
 
+///////////////////////////////
+
+static void drawOverlay(void) {
+	if (!ovl.enabled) return;
+	if (!ovl.texture && ovl.overlay && vid.renderer) {
+		ovl.texture = SDL_CreateTextureFromSurface(vid.renderer, ovl.overlay);
+		if (ovl.texture) {
+			SDL_SetTextureBlendMode(ovl.texture, SDL_BLENDMODE_BLEND);
+		}
+	}
+	if (ovl.texture) {
+		uint32_t ticks = SDL_GetTicks();
+		if ((ticks / 500) % 2 == 0) {
+			SDL_Rect r = {
+				FIXED_WIDTH - SCALE1(PADDING) - SCALE1(OVERLAY_WIDTH),
+				SCALE1(PADDING),
+				SCALE1(OVERLAY_WIDTH),
+				SCALE1(OVERLAY_HEIGHT)
+			};
+			SDL_RenderCopy(vid.renderer, ovl.texture, NULL, &r);
+		}
+	}
+}
+
 void PLAT_flip(SDL_Surface* IGNORED, int ignored) {
 	if (!vid.blit) {
 		resizeVideo(FIXED_WIDTH,FIXED_HEIGHT,FIXED_PITCH); // !!!???
@@ -366,6 +406,7 @@ void PLAT_flip(SDL_Surface* IGNORED, int ignored) {
 		SDL_BlitSurface(vid.screen, NULL, vid.buffer, NULL);
 		SDL_UnlockTexture(vid.texture);
 		SDL_RenderCopy(vid.renderer, vid.texture, NULL,NULL);
+		drawOverlay();
 		SDL_RenderPresent(vid.renderer);
 		return;
 	}
@@ -413,53 +454,60 @@ void PLAT_flip(SDL_Surface* IGNORED, int ignored) {
 		dst_rect = &(SDL_Rect){x,y,w,h};
 	}
 	SDL_RenderCopy(vid.renderer, target, src_rect, dst_rect);
+	drawOverlay();
 	SDL_RenderPresent(vid.renderer);
 	vid.blit = NULL;
 }
 
 ///////////////////////////////
 
-// TODO: 
-#define OVERLAY_WIDTH PILL_SIZE // unscaled
-#define OVERLAY_HEIGHT PILL_SIZE // unscaled
-#define OVERLAY_BPP 4
-#define OVERLAY_DEPTH 16
-#define OVERLAY_PITCH (OVERLAY_WIDTH * OVERLAY_BPP) // unscaled
-#define OVERLAY_RGBA_MASK 0x00ff0000,0x0000ff00,0x000000ff,0xff000000 // ARGB
-static struct OVL_Context {
-	SDL_Surface* overlay;
-} ovl;
-
 SDL_Surface* PLAT_initOverlay(void) {
+	if (ovl.texture) {
+		SDL_DestroyTexture(ovl.texture);
+		ovl.texture = NULL;
+	}
+	if (ovl.overlay) {
+		SDL_FreeSurface(ovl.overlay);
+		ovl.overlay = NULL;
+	}
 	ovl.overlay = SDL_CreateRGBSurface(SDL_SWSURFACE, SCALE2(OVERLAY_WIDTH,OVERLAY_HEIGHT),OVERLAY_DEPTH,OVERLAY_RGBA_MASK);
+	ovl.enabled = 0;
 	return ovl.overlay;
 }
 void PLAT_quitOverlay(void) {
-	if (ovl.overlay) SDL_FreeSurface(ovl.overlay);
+	if (ovl.texture) {
+		SDL_DestroyTexture(ovl.texture);
+		ovl.texture = NULL;
+	}
+	if (ovl.overlay) {
+		SDL_FreeSurface(ovl.overlay);
+		ovl.overlay = NULL;
+	}
+	ovl.enabled = 0;
 }
 void PLAT_enableOverlay(int enable) {
-
+	ovl.enabled = enable;
 }
 
 ///////////////////////////////
 
 void PLAT_getBatteryStatus(int* is_charging, int* charge) {
-	// *is_charging = 0;
-	// *charge = PWR_LOW_CHARGE;
-	// return;
-	
 	char state[256];
+	*is_charging = 0;
 	
-	// works with old model
-	getFile("/sys/class/udc/10180000.usb/state", state, 256);
-	*is_charging = strncmp("not attached",state,strlen("not attached")); // I don't understand how this works, if it's a match it would equal 0 which is false...
-	
-	// nothing works with new model :sob:
-	// getFile("/sys/class/power_supply/battery/status", state, 256);
-	// *is_charging = exactMatch(state,"Charging\n");
+	if (exists("/sys/class/udc/10180000.usb/state")) {
+		getFile("/sys/class/udc/10180000.usb/state", state, 256);
+		if (strncmp("not attached", state, strlen("not attached")) != 0) *is_charging = 1;
+	}
+	if (!*is_charging && exists("/sys/class/power_supply/battery/status")) {
+		getFile("/sys/class/power_supply/battery/status", state, 256);
+		if (exactMatch(state, "Charging\n") || exactMatch(state, "Full\n")) *is_charging = 1;
+	}
+	if (!*is_charging && exists("/sys/class/power_supply/battery/charger_online")) {
+		if (getInt("/sys/class/power_supply/battery/charger_online") > 0) *is_charging = 1;
+	}
 
 	int i = getInt("/sys/class/power_supply/battery/capacity");
-	// worry less about battery and more about the game you're playing
 	     if (i>80) *charge = 100;
 	else if (i>60) *charge =  80;
 	else if (i>40) *charge =  60;

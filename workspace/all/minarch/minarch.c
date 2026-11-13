@@ -785,6 +785,44 @@ static char* button_labels[] = {
 	"MENU+R3",
 	NULL,
 };
+
+// Frontend display labels with swapped A<->B and X<->Y hints
+static char* button_display_labels[] = {
+	"NONE",
+	"UP",
+	"DOWN",
+	"LEFT",
+	"RIGHT",
+	"B",
+	"A",
+	"Y",
+	"X",
+	"START",
+	"SELECT",
+	"L1",
+	"R1",
+	"L2",
+	"R2",
+	"L3",
+	"R3",
+	"MENU+UP",
+	"MENU+DOWN",
+	"MENU+LEFT",
+	"MENU+RIGHT",
+	"MENU+B",
+	"MENU+A",
+	"MENU+Y",
+	"MENU+X",
+	"MENU+START",
+	"MENU+SELECT",
+	"MENU+L1",
+	"MENU+R1",
+	"MENU+L2",
+	"MENU+R2",
+	"MENU+L3",
+	"MENU+R3",
+	NULL,
+};
 static char* overclock_labels[] = {
 	"Powersave",
 	"Normal",
@@ -3258,7 +3296,7 @@ static int OptionEmulator_optionChanged(MenuList* list, int i) {
 static int OptionEmulator_optionDetail(MenuList* list, int i) {
 	MenuItem* item = &list->items[i];
 	Option* option = OptionList_getOption(&config.core, item->key);
-	if (option->full) return Menu_message(option->full, (char*[]){ "B","BACK", NULL });
+	if (option->full) return Menu_message(option->full, (char*[]){ "A","BACK", NULL });
 	else return MENU_CALLBACK_NOP;
 }
 static MenuList OptionEmulator_menu = {
@@ -3310,7 +3348,7 @@ static int OptionEmulator_openMenu(MenuList* list, int i) {
 		Menu_options(&OptionEmulator_menu);
 	}
 	else {
-		Menu_message("This core has no options.", (char*[]){ "B","BACK", NULL });
+		Menu_message("This core has no options.", (char*[]){ "A","BACK", NULL });
 	}
 	
 	return MENU_CALLBACK_NOP;
@@ -3373,7 +3411,7 @@ static int OptionControls_optionChanged(MenuList* list, int i) {
 }
 static MenuList OptionControls_menu = {
 	.type = MENU_INPUT,
-	.desc = "Press A to set and X to clear."
+	.desc = "Press B to set and Y to clear."
 		"\nSupports single button and MENU+button." // TODO: not supported on nano because POWER doubles as MENU
 	,
 	.on_confirm = OptionControls_bind,
@@ -3473,7 +3511,7 @@ static int OptionShortcuts_unbind(MenuList* list, int i) {
 }
 static MenuList OptionShortcuts_menu = {
 	.type = MENU_INPUT,
-	.desc = "Press A to set and X to clear." 
+	.desc = "Press B to set and Y to clear." 
 		"\nSupports single button and MENU+button." // TODO: not supported on nano because POWER doubles as MENU
 	,
 	.on_confirm = OptionShortcuts_bind,
@@ -3537,7 +3575,7 @@ static int OptionSaveChanges_onConfirm(MenuList* list, int i) {
 			break;
 		}
 	}
-	Menu_message(message, (char*[]){ "A","OKAY", NULL });
+	Menu_message(message, (char*[]){ "B","OKAY", NULL });
 	OptionSaveChanges_updateDesc();
 	return MENU_CALLBACK_EXIT;
 }
@@ -3925,7 +3963,9 @@ static int Menu_options(MenuList* list) {
 						// buh
 					}
 					else if (item->value>=0) {
-						text = TTF_RenderUTF8_Blended(font.tiny, item->values[item->value], COLOR_WHITE); // always white
+						char* val_str = item->values[item->value];
+						if (item->values==button_labels) val_str = button_display_labels[item->value];
+						text = TTF_RenderUTF8_Blended(font.tiny, val_str, COLOR_WHITE); // always white
 						SDL_BlitSurface(text, NULL, screen, &(SDL_Rect){
 							ox + mw - text->w - SCALE1(OPTION_PADDING),
 							oy+SCALE1((j*BUTTON_SIZE)+3)
@@ -4427,7 +4467,7 @@ static void Menu_loop(void) {
 			
 			if (show_setting && !GetHDMI()) GFX_blitHardwareHints(screen, show_setting);
 			else GFX_blitButtonGroup((char*[]){ BTN_SLEEP==BTN_POWER?"POWER":"MENU","SLEEP", NULL }, 0, screen, 0);
-			GFX_blitButtonGroup((char*[]){ "B","BACK", "A","OKAY", NULL }, 1, screen, 1);
+			GFX_blitButtonGroup((char*[]){ "A","BACK", "B","OKAY", NULL }, 1, screen, 1);
 			
 			// list
 			oy = (((DEVICE_HEIGHT / FIXED_SCALE) - PADDING * 2) - (MENU_ITEM_COUNT * PILL_SIZE)) / 2;

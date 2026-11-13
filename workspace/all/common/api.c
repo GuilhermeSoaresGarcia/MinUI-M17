@@ -1455,14 +1455,14 @@ static void PWR_initOverlay(void) {
 
 static void PWR_updateBatteryStatus(void) {
 	PLAT_getBatteryStatus(&pwr.is_charging, &pwr.charge);
-	PLAT_enableOverlay(pwr.should_warn && pwr.charge<=PWR_LOW_CHARGE);
+	PLAT_enableOverlay(pwr.should_warn && pwr.charge<=PWR_LOW_CHARGE && !pwr.is_charging);
 }
 
 static void* PWR_monitorBattery(void *arg) {
 	while(1) {
 		// TODO: the frequency of checking could depend on whether 
 		// we're in game (less frequent) or menu (more frequent)
-		sleep(5);
+		sleep(2);
 		PWR_updateBatteryStatus();
 	}
 	return NULL;
@@ -1496,7 +1496,7 @@ void PWR_quit(void) {
 }
 void PWR_warn(int enable) {
 	pwr.should_warn = enable;
-	PLAT_enableOverlay(pwr.should_warn && pwr.charge<=PWR_LOW_CHARGE);
+	PLAT_enableOverlay(pwr.should_warn && pwr.charge<=PWR_LOW_CHARGE && !pwr.is_charging);
 }
 
 int PWR_ignoreSettingInput(int btn, int show_setting) {
