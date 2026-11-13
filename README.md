@@ -34,17 +34,8 @@ On the Boyhom M17, the physical button labeling and user expectation differ from
 
 ## Installation on M17
 
-1. Download the latest release zip (`MinUI-M17-Release.zip` or individual binaries).
-2. Extract the archive onto the root of your FAT32-formatted SD card:
-   - `/.system/m17/bin/minui.elf`
-   - `/.system/m17/bin/minarch.elf`
-   - `/.system/m17/bin/keymon.elf`
-   - `/.system/m17/bin/say.elf`
-   - `/.system/m17/bin/syncsettings.elf`
-   - `/.system/m17/lib/libmsettings.so`
-   - `/Tools/m17/Input.pak/minput.elf`
-   - `/Tools/m17/Clock.pak/clock.elf`
-   - `/em_ui.sh` (bootloader launcher script)
+1. Download the release file [M17.7z](https://github.com/GuilhermeSoaresGarcia/MinUI-M17/releases/download/main/M17.7z)
+2. Extract the archive onto the root of your exFAT-formatted SD card
 
 ---
 
